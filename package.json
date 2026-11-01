@@ -1,0 +1,17 @@
+{
+  "name": "student-performance-classroom",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx vercel dev",
+    "db:migrate": "node scripts/migrate.mjs",
+    "admin:create": "node scripts/create-admin.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "check": "node --check api/auth/[action].mjs && node --check api/students.mjs && node --check api/students/[id].mjs && node --check api/predictions.mjs && node --check api/imports.mjs && node --check api/assessments.mjs && node --check api/classes.mjs && node --check api/subjects.mjs && node --check api/users.mjs && node --check api/dashboard.mjs && node --check api/settings.mjs && node --check api/reports.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "mongodb": "^7.8.0"
+  }
+}

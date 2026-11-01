@@ -1,0 +1,11 @@
+import { MongoClient,ObjectId } from 'mongodb';
+import { config } from 'dotenv';
+import { hashPassword } from '../api/_lib/password.mjs';
+config({path:'.env.local'});
+const uri=process.env.MONGODB_URI,dbName=process.env.MONGODB_DB||'student_performanceDB';
+const email=String(process.env.ADMIN_EMAIL||'').trim().toLowerCase(),name=String(process.env.ADMIN_NAME||'').trim(),password=process.env.ADMIN_PASSWORD||'',schoolName=String(process.env.SCHOOL_NAME||'').trim();
+if(!uri||!email||!name||!schoolName||password.length<12)throw new Error('Set MONGODB_URI, ADMIN_EMAIL, ADMIN_NAME, SCHOOL_NAME and a unique ADMIN_PASSWORD of at least 12 characters in your shell environment.');
+if(process.env.VERCEL_ENV==='production')throw new Error('This one-time setup command must be run from a secure local shell, not a production function.');
+const client=new MongoClient(uri,{serverSelectionTimeoutMS:8000,appName:'student-performance-admin-setup'});
+try{await client.connect();const db=client.db(dbName),users=db.collection('users');if(await users.findOne({email}))throw new Error('That email already has an account.');const schoolId=new ObjectId(),userId=new ObjectId(),now=new Date(),session=client.startSession();
+try{await session.withTransaction(async()=>{await db.collection('schools').insertOne({_id:schoolId,name:schoolName,academicYear:'2026–2027',atRiskThreshold:60,createdAt:now,updatedAt:now},{session});await users.insertOne({_id:userId,schoolId,name,email,passwordHash:await hashPassword(password),role:'school_admin',active:true,createdAt:now,updatedAt:now,lastLoginAt:null},{session});for(const className of ['Class 10-A','Class 10-B','Class 9-A'])await db.collection('classes').insertOne({schoolId,name:className,grade:null,academicYear:'2026–2027',createdAt:now},{session});for(const subjectName of ['Mathematics','Science','English','Social Studies'])await db.collection('subjects').insertOne({schoolId,name:subjectName,createdAt:now},{session});await db.collection('audit_logs').insertOne({schoolId,actorId:userId,action:'user.created',entityType:'user',entityId:userId,safeMetadata:{role:'school_admin',source:'one-time-provisioning'},createdAt:now},{session})})}finally{await session.endSession()}console.log('School administrator created. No password was printed.')}finally{await client.close()}

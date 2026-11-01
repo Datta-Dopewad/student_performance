@@ -1,0 +1,1 @@
+The idempotent collection and index setup is maintained in `scripts/migrate.mjs`. Run `npm run db:migrate` after setting the MongoDB Atlas URI. The migration version is recorded in the `schema_migrations` collection.
