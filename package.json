@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx vercel dev",
+    "start": "node server.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "admin:create": "node scripts/create-admin.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
